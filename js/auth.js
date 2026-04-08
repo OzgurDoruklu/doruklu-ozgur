@@ -1,60 +1,21 @@
-import { supabase, AppState } from './supabase-config.js';
-import { ui } from './ui.js';
-import { initDashboard } from './dashboard.js';
+import { supabase } from 'https://cdn.doruklu.com/supabase-config.js';
 
 export async function initAuth() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'flex';
+    
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
-        await handleLoginSuccess(session.user);
-    } else {
-        ui.showScreen('auth-screen');
-    }
-
-    document.getElementById('login-btn').addEventListener('click', handleLogin);
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
-}
-
-async function handleLogin() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    ui.setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    ui.setLoading(false);
-
-    if (error) {
-        ui.showError(error.message);
-    } else {
-        await handleLoginSuccess(data.user);
-    }
-}
-
-async function handleLoginSuccess(user) {
-    AppState.user = user;
-    
-    // Profili çek ve admin yetkisi kontrol et
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        if (spinner) spinner.style.display = 'none';
         
-    if (profile && profile.role === 'admin') {
-        AppState.profile = profile;
-        document.getElementById('admin-name').textContent = profile.display_name || user.email;
-        ui.showScreen('dashboard-screen');
-        initDashboard();
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                window.location.href = 'https://doruklu.com';
+            });
+        }
     } else {
-        ui.showError('Bu panele sadece adminler erişebilir.');
-        await supabase.auth.signOut();
-        AppState.user = null;
+        window.location.href = 'https://doruklu.com/?redirect_to=' + encodeURIComponent(window.location.href);
     }
-}
-
-async function handleLogout() {
-    await supabase.auth.signOut();
-    AppState.user = null;
-    AppState.profile = null;
-    ui.showScreen('auth-screen');
 }
