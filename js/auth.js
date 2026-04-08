@@ -1,4 +1,5 @@
 import { supabase } from 'https://cdn.doruklu.com/supabase-config.js';
+import { ui as globalUI } from 'https://cdn.doruklu.com/ui.js';
 
 export async function initAuth() {
     const spinner = document.getElementById('loading-spinner');
@@ -8,6 +9,12 @@ export async function initAuth() {
     
     if (session) {
         if (spinner) spinner.style.display = 'none';
+        
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        globalUI.renderUserBadge(session.user, profile, async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'https://doruklu.com';
+        });
         
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
