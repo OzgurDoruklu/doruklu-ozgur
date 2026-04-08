@@ -6,7 +6,7 @@ export async function initAuth() {
     if (spinner) spinner.style.display = 'flex';
     
     supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
             await handleLogin(session);
         }
     });
@@ -20,9 +20,10 @@ export async function initAuth() {
             window.location.href = 'https://doruklu.com/?redirect_to=' + encodeURIComponent(window.location.href);
         }
     }
-}
-
+let _isLoggedIn = false;
 async function handleLogin(session) {
+    if (_isLoggedIn) return;
+    _isLoggedIn = true;
     const spinner = document.getElementById('loading-spinner');
     if (spinner) spinner.style.display = 'none';
         
