@@ -4,18 +4,16 @@ import { initSubdomainAuth } from 'https://cdn.doruklu.com/auth.js';
 
 export async function initAuth() {
     await initSubdomainAuth('ozgur_dashboard', (user, profile) => {
-        // Login başarılı, app content göster
         const appContent = document.getElementById('dashboard-screen');
         if (appContent) appContent.style.display = 'flex';
 
-        // Merkezi Sisteme Dön butonu
-        // "Merkezi Sisteme Dön" — sadece yönlendir, signOut yapma
-        // Gerçek çıkış badge'deki "Çıkış Yap" butonuyla yapılır
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                window.location.href = 'https://doruklu.com';
-            });
-        }
+        // Global Header & Badge
+        globalUI.renderGlobalHeader("Özgür");
+        globalUI.renderUserBadge(user, profile, async () => {
+            const { clearAllCaches } = await import('https://cdn.doruklu.com/auth.js');
+            await clearAllCaches();
+            await supabase.auth.signOut();
+            window.location.href = 'https://doruklu.com/?logout=true';
+        });
     });
 }
